@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package account.v1;
+
+option go_package = "api/proto/account/v1;accountv1";
+
+// Account service handles creation and retrieval of user accounts.
+service Account {
+    // Creates a new account and returnes its generated ID
+    rpc addAccount(AccountInfo) returns (AccountID);
+
+    // Returns account details by its ID
+    rpc getAccount(AccountID) returns (AccountInfo);
+}
+
+// Holds all info about account
+message AccountInfo {
+    string id = 1;
+    string login = 2;
+    string email = 3;
+}
+
+// Holds account id
+message AccountID {
+    string value = 1;
+}

@@ -1,0 +1,23 @@
+# Go build artifacts
+*.exe
+*.out
+*.test
+*.log
+
+# Go modules
+vendor/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment config
+.env
+
+# Protobuf artifacts 
+*.pb.go
