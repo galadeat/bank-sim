@@ -1,4 +1,4 @@
-# 🏦 bankAccount gRPC Service
+# 🏦 bank-sim gRPC Service
 
 A minimalist gRPC service written in Go for managing user accounts. This project showcases clean architecture, Protocol Buffers integration, environment-based configuration, and a modern client-server setup.
 
