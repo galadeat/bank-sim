@@ -1,4 +1,4 @@
-package internal
+package account
 
 import (
 	"context"
@@ -17,6 +17,14 @@ type server struct {
 
 // AddAccount realizes Account.addAccount()
 func (s *server) AddAccount(ctx context.Context, in *accountv1.AccountInfo) (*accountv1.AccountID, error) {
+	if in.Login == "" {
+		return nil, status.Error(codes.InvalidArgument, "login cannot be empty")
+	}
+
+	if in.Email == "" {
+		return nil, status.Error(codes.InvalidArgument, "email cannot be empty")
+	}
+
 	out, err := uuid.NewV4()
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "Error while generating Account ID: %v", err)

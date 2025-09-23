@@ -5,7 +5,7 @@ import (
 	"net"
 
 	accountv1 "github.com/galadeat/bank-sim/api/proto/account/v1"
-	"github.com/galadeat/bank-sim/server/internal"
+	"github.com/galadeat/bank-sim/server/account"
 
 	"google.golang.org/grpc"
 )
@@ -21,7 +21,7 @@ func main() {
 		log.Fatalf("Failed to listen: %v", err)
 	}
 	s := grpc.NewServer()
-	accountv1.RegisterAccountServer(s, internal.NewServer())
+	accountv1.RegisterAccountServer(s, account.NewServer())
 
 	log.Printf("Starting gRPC listener on port " + port)
 	if err := s.Serve(lis); err != nil {
