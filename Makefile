@@ -19,8 +19,15 @@ quickstart:
 test:
 	go test ./tests/... -v
 
-pb: 
-	protoc --go_out=paths=source_relative:. \
-       --go-grpc_out=paths=source_relative:. \
-       api/proto/account/v1/account.proto
+PROTOC = protoc
+PROTO_DIR = api/proto
+PROTO_FILES = $(shell find $(PROTO_DIR) -name "*.proto")
+
+pb:
+	$(PROTOC) \
+		--proto_path=$(PROTO_DIR) \
+    	--go_out=$(PROTO_DIR) --go_opt=paths=source_relative \
+    	--go-grpc_out=$(PROTO_DIR) --go-grpc_opt=paths=source_relative \
+    	$(PROTO_FILES)
+
 
