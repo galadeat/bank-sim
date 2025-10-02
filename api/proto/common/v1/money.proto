@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package common.v1;
+
+option go_package = "api/proto/common/v1;commonv1";
+
+message Money {
+    string currency = 1; // "RUB", "USD"
+    int64 units = 2; // integer part
+    int32 nanos = 3;  // decimal part
+}
