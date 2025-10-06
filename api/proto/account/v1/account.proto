@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package account.v1;
 
-option go_package = "api/proto/account/v1;accountv1";
+option go_package = "github.com/galadeat/bank-sim/api/proto/account/v1;accountv1";
 
 // Account service handles creation and retrieval of user accounts.
 service Account {

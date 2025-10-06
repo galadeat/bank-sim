@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package account.v2;
 
-option go_package = "api/proto/account/v2;accountv2";
+option go_package = "github.com/galadeat/bank-sim/api/proto/account/v2;accountv2";
 
 import "user/v1/user.proto";
 import "common/v1/money.proto";
