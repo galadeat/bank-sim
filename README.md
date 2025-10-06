@@ -30,12 +30,12 @@ make quickstart
 .
 └── bankAccount/
     ├── api/
-    │   └── proto/
-    │       └── account/
-    │           └── v1/
-    │               ├── account.proto
-    │               ├── account.pb.go
-    │               └── account_grpc.pb.go
+    │   └── proto/               # gRPC contracts
+    │       ├── account/         # account service (v1, v2)
+    │       ├── common/          # common types (Money, etc)
+    │       ├── reporting/       # reporting service
+    │       ├── transaction/     # transaction service
+    │       └── user/            # user service
     ├── client/
     │   └── main.go
     ├── server/
