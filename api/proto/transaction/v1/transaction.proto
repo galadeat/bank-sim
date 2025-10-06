@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package transaction.v1;
 
-option go_package = "api/proto/transaction/v1;transactionv1";
+option go_package = "github.com/galadeat/bank-sim/api/proto/transaction/v1;transactionv1";
 
 import "common/v1/money.proto";
 
