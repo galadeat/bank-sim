@@ -18,7 +18,7 @@ type UserService struct {
 }
 
 // Constructor
-func NewUserSevice() *UserService {
+func NewUserService() *UserService {
 	return &UserService{userMap: make(map[string]*userv1.UserInfo)}
 }
 
@@ -81,6 +81,11 @@ func (s *UserService) ListUsers(ctx context.Context, req *userv1.ListUsersReques
 
 // realization of UpdateUser rpc method
 func (s *UserService) UpdateUser(ctx context.Context, req *userv1.UpdateUserRequest) (*userv1.UpdateUserResponse, error) {
+	select {
+	case <-ctx.Done():
+		return nil, status.Errorf(codes.Canceled, "request canceled: %v", ctx.Err())
+	default:
+	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -101,6 +106,12 @@ func (s *UserService) UpdateUser(ctx context.Context, req *userv1.UpdateUserRequ
 }
 
 func (s *UserService) DeleteUser(ctx context.Context, req *userv1.DeleteUserRequest) (*userv1.DeleteUserResponse, error) {
+	select {
+	case <-ctx.Done():
+		return nil, status.Errorf(codes.Canceled, "request canceled: %v", ctx.Err())
+	default:
+	}
+
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
