@@ -15,8 +15,11 @@ import (
 
 type Service struct {
 	accountv2.UnimplementedAccountServer
-	mu       sync.RWMutex
-	accounts map[string]*accountv2.AccountInfo
+	mu           sync.RWMutex
+	accounts     map[string]*accountv2.AccountInfo
+	deposits     map[string]*accountv2.DepositResponse
+	withdraws    map[string]*accountv2.WithdrawResponse
+	accCreations map[string]*accountv2.CreateAccountResponse
 
 	userClient userv1.UserClient
 }
@@ -24,8 +27,11 @@ type Service struct {
 // New is the constructor
 func New(userClient userv1.UserClient) *Service {
 	return &Service{
-		accounts:   make(map[string]*accountv2.AccountInfo),
-		userClient: userClient,
+		accounts:     make(map[string]*accountv2.AccountInfo),
+		accCreations: make(map[string]*accountv2.CreateAccountResponse),
+		deposits:     make(map[string]*accountv2.DepositResponse),
+		withdraws:    make(map[string]*accountv2.WithdrawResponse),
+		userClient:   userClient,
 	}
 }
 
@@ -39,6 +45,17 @@ func (s *Service) CreateAccount(ctx context.Context, req *accountv2.CreateAccoun
 
 	if req.UserId == "" {
 		return nil, status.Error(codes.InvalidArgument, "user id is required")
+	}
+
+	if req.RequestId == "" {
+		return nil, status.Error(codes.InvalidArgument, "request id is required")
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if resp, ok := s.accCreations[req.RequestId]; ok {
+		return resp, nil
 	}
 
 	userResp, err := s.userClient.GetUser(ctx, &userv1.GetUserRequest{Id: req.UserId})
@@ -58,11 +75,13 @@ func (s *Service) CreateAccount(ctx context.Context, req *accountv2.CreateAccoun
 		Owner:   userResp.User,
 		Balance: req.InitialBalance}
 
-	s.mu.Lock()
-	defer s.mu.Unlock()
 	s.accounts[id.String()] = account
 
-	return &accountv2.CreateAccountResponse{Account: account}, nil
+	log.Printf("account created: account=%v, request_id=%s", account, req.RequestId)
+
+	resp := &accountv2.CreateAccountResponse{Account: account}
+	s.accCreations[req.RequestId] = resp
+	return resp, nil
 }
 
 // GetAccount is the realization of the rpc method
@@ -163,9 +182,17 @@ func (s *Service) Deposit(ctx context.Context, req *accountv2.DepositRequest) (*
 	if req.Amount == nil || (req.Amount.Units == 0 && req.Amount.Nanos == 0) {
 		return nil, status.Error(codes.InvalidArgument, "deposit must be greater than zero")
 	}
+	if req.RequestId == "" {
+		return nil, status.Error(codes.InvalidArgument, "request id is required")
+	}
 
 	s.mu.Lock()
 	defer s.mu.Unlock()
+
+	if resp, ok := s.deposits[req.RequestId]; ok {
+		return resp, nil
+	}
+
 	acc, ok := s.accounts[req.AccountId]
 	if !ok {
 		return nil, status.Error(codes.NotFound, "account not found")
@@ -178,9 +205,11 @@ func (s *Service) Deposit(ctx context.Context, req *accountv2.DepositRequest) (*
 
 	acc.Balance = balance
 
-	log.Printf("deposit: id=%s, amount=%v, new balance=%v", req.AccountId, req.Amount, acc.Balance)
+	log.Printf("deposit: account_id=%s, request_id=%s, amount=%v, new_balance=%v", req.AccountId, req.RequestId, req.Amount, acc.Balance)
 
-	return &accountv2.DepositResponse{Account: acc}, nil
+	resp := &accountv2.DepositResponse{Account: acc}
+	s.deposits[req.RequestId] = resp
+	return resp, nil
 }
 
 func addMoney(a, b *commonv1.Money) (*commonv1.Money, error) {

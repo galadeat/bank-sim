@@ -31,6 +31,7 @@ message GetAccountRequest {string id = 1;}
 message CreateAccountRequest {
     string user_id = 1;
     common.v1.Money initial_balance = 2;
+    string request_id = 3;
 }
 
 message CreateAccountResponse {AccountInfo account = 1;}
