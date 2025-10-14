@@ -212,6 +212,44 @@ func (s *Service) Deposit(ctx context.Context, req *accountv2.DepositRequest) (*
 	return resp, nil
 }
 
+// Withdraw is the realization of the rpc method.
+func (s *Service) Withdraw(ctx context.Context, req *accountv2.WithdrawRequest) (*accountv2.WithdrawResponse, error) {
+	select {
+	case <-ctx.Done():
+		return nil, status.Error(codes.Canceled, "request canceled by client")
+	default:
+	}
+	if req.AccountId == "" {
+		return nil, status.Error(codes.InvalidArgument, "account id is required")
+	}
+	if req.RequestId == "" {
+		return nil, status.Error(codes.InvalidArgument, "request id is required")
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if resp, ok := s.withdraws[req.RequestId]; ok {
+		return resp, nil
+	}
+	acc, ok := s.accounts[req.AccountId]
+	if !ok {
+		return nil, status.Error(codes.NotFound, "account not found")
+	}
+	balance, err := substractMoney(acc.Balance, req.Amount)
+	if err != nil {
+		return nil, err
+	}
+
+	acc.Balance = balance
+
+	log.Printf("withdraw: account_id=%s, request_id=%s, new_balance=%v", req.AccountId, req.RequestId, acc.Balance)
+	resp := &accountv2.WithdrawResponse{Account: acc}
+	s.withdraws[req.RequestId] = resp
+	return resp, nil
+
+}
+
 func addMoney(a, b *commonv1.Money) (*commonv1.Money, error) {
 	if m := isZero(a, b); m != nil {
 		return m, nil
@@ -230,6 +268,22 @@ func addMoney(a, b *commonv1.Money) (*commonv1.Money, error) {
 
 	return balance, nil
 
+}
+
+func substractMoney(a, b *commonv1.Money) (*commonv1.Money, error) {
+	if a.Currency != b.Currency {
+		return nil, status.Error(codes.FailedPrecondition, "currency mismatch")
+	}
+	if a.Units < b.Units || (a.Units == b.Units && a.Nanos < b.Nanos) {
+		return nil, status.Error(codes.FailedPrecondition, "insufficient balance")
+	}
+	balance := &commonv1.Money{
+		Currency: a.Currency,
+		Units:    a.Units - b.Units,
+		Nanos:    a.Nanos - b.Nanos,
+	}
+	balance = normalizeMoney(balance)
+	return balance, nil
 }
 
 func isZero(a, b *commonv1.Money) *commonv1.Money {
