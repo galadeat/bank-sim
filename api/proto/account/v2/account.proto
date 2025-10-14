@@ -9,26 +9,55 @@ import "common/v1/money.proto";
 
 service Account {
     rpc CreateAccount(CreateAccountRequest) returns (CreateAccountResponse);
-    rpc GetAccount(GetAccountRequest) returns (AccountInfo);
+    rpc GetAccount(GetAccountRequest) returns (GetAccountResponse);
+    rpc ListAccounts(ListAccountsRequest) returns (ListAccountsResponse);
+    rpc DeleteAccount(DeleteAccountRequest) returns (DeleteAccountResponse);
+
+    rpc Deposit(DepositRequest) returns (DepositResponse);
+    rpc Withdraw(WithdrawRequest) returns (WithdrawResponse);
 }
 
 
+message AccountInfo {
+  string id = 1;
+  user.v1.UserInfo owner = 2;
+  common.v1.Money balance = 3;
+}
+
+message GetAccountResponse {AccountInfo account = 1;}
+
+message GetAccountRequest {string id = 1;}
 
 message CreateAccountRequest {
     string user_id = 1;
     common.v1.Money initial_balance = 2;
+    string request_id = 3;
 }
 
-message CreateAccountResponse {
-    string id = 1;
+message CreateAccountResponse {AccountInfo account = 1;}
+
+
+message ListAccountsRequest {string user_id = 1;}
+
+message ListAccountsResponse {repeated AccountInfo accounts = 1;}
+
+
+message DeleteAccountRequest {string account_id = 1;}
+
+message DeleteAccountResponse {string account_id = 1;}
+
+message DepositRequest {
+  string account_id = 1;
+  common.v1.Money amount = 2;
+  string request_id = 3;
 }
 
-message GetAccountRequest {
-    string id = 1;
+message DepositResponse {AccountInfo account = 1;}
+
+message WithdrawRequest {
+  string account_id = 1;
+  common.v1.Money amount = 2;
+  string request_id = 3;
 }
 
-message AccountInfo {
-    string id = 1;
-    user.v1.UserInfo owner = 2;
-    common.v1.Money balance = 3;
-}
+message WithdrawResponse {AccountInfo account = 1;}
