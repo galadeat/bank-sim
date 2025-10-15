@@ -4,6 +4,7 @@ go 1.24.6
 
 require (
 	github.com/gofrs/uuid v4.4.0+incompatible
+	github.com/golang/mock v1.6.0
 	github.com/joho/godotenv v1.5.1
 	github.com/stretchr/testify v1.11.1
 	google.golang.org/grpc v1.75.1
