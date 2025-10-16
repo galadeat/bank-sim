@@ -229,4 +229,151 @@ func TestGetAccount(t *testing.T) {
 
 		})
 	}
+
+	t.Run("cancelled request", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+
+		_, err := svc.GetAccount(ctx, &accountv2.GetAccountRequest{Id: "user-123"})
+		assert.Error(t, err)
+	})
 }
+
+//func TestListAccounts(t *testing.T) {
+//	ctrl := gomock.NewController(t)
+//	defer ctrl.Finish()
+//
+//	user := mocks.NewMockUserClient(ctrl)
+//	svc := New(user)
+//
+//	acc1, err := svc.CreateAccount(context.Background(), &accountv2.CreateAccountRequest{
+//		UserId: "user-123",
+//		InitialBalance: &commonv1.Money{
+//			Currency: "USD",
+//			Units:    1000,
+//			Nanos:    0,
+//		},
+//		RequestId: "1",
+//	})
+//
+//	if err != nil {
+//		t.Fatalf("unexpected error: %v", err)
+//	}
+//
+//	acc2, err := svc.CreateAccount(context.Background(), &accountv2.CreateAccountRequest{
+//		UserId: "user-123",
+//		InitialBalance: &commonv1.Money{
+//			Currency: "RUB",
+//			Units:    1_000_000,
+//			Nanos:    0,
+//		},
+//		RequestId: "2",
+//	})
+//	if err != nil {
+//		t.Fatalf("unexpected error: %v", err)
+//	}
+//
+//	accounts := make([]*accountv2.AccountInfo, 0)
+//	accounts = append(accounts, acc1.Account)
+//	accounts = append(accounts, acc2.Account)
+//
+//	tests := []struct {
+//		name      string
+//		listReq   *accountv2.ListAccountsRequest
+//		createReq []*accountv2.CreateAccountRequest
+//		mockSetup func(*mocks.MockUserClient)
+//		accNums     int32
+//		wantErr     bool
+//		wantErrCode codes.Code
+//	}{
+//		{
+//			name:    "success",
+//			listReq: &accountv2.ListAccountsRequest{UserId: "user-123"},
+//			createReq: []*accountv2.CreateAccountRequest{
+//				{
+//					UserId: "user-123",
+//					InitialBalance: &commonv1.Money{
+//						Currency: "RUB",
+//						Units:    1_000_000_000,
+//						Nanos:    0,
+//					},
+//					RequestId: "1",
+//				},
+//				{
+//					UserId: "user-123",
+//					InitialBalance: &commonv1.Money{
+//						Currency: "USD",
+//						Units:    1000,
+//						Nanos:    0,
+//					},
+//					RequestId: "2",
+//				},
+//			},
+//			mockSetup: func(user *mocks.MockUserClient) {
+//				user.EXPECT().
+//					GetUser(gomock.Any(), &userv1.GetUserRequest{Id: "user-123"}).
+//					Return(&userv1.GetUserResponse{User: &userv1.UserInfo{Id: "user-123"}}, nil)
+//			},
+//			accNums:     2,
+//			wantErr:     false,
+//			wantErrCode: codes.OK,
+//		},
+//		{
+//			name:        "userId is empty",
+//			listReq:     &accountv2.ListAccountsRequest{UserId: ""},
+//			mockSetup:   nil,
+//			wantErr:     true,
+//			wantErrCode: codes.InvalidArgument,
+//		},
+//		{
+//			name:    "user does not exist",
+//			listReq: &accountv2.ListAccountsRequest{UserId: "not-found"},
+//			mockSetup:  func(user *mocks.MockUserClient) {
+//				user.EXPECT().
+//				GetUser(gomock.Any(), &userv1.GetUserRequest{Id: "not-found"}).AnyTimes().
+//				Return(nil, status.Error(codes.NotFound, "user not found")).AnyTimes(},
+//			wantErr:     true,
+//			wantErrCode: codes.NotFound,
+//		},
+//	}
+//	for _, tt := range tests {
+//		t.Run(tt.name, func(t *testing.T) {
+//			ctx := context.Background()
+//			ctrl := gomock.NewController(t)
+//			defer ctrl.Finish()
+//
+//			user := mocks.NewMockUserClient(ctrl)
+//			if tt.mockSetup != nil {
+//				tt.mockSetup(user)
+//			}
+//
+//			svc := New(user)
+//			if tt.createReq != nil {
+//				CreateAccount(svc, ctx, tt.createReq )
+//			}
+//			CreateAccount(svc, ctx, tt.createReq )
+//
+//			acc, err := svc.ListAccounts(context.Background(), tt.listReq)
+//			if tt.wantErr && err == nil || !tt.wantErr && err != nil {
+//				t.Errorf("expected %v, got %v", tt.wantErrCode, err)
+//			}
+//
+//			if acc != nil {
+//				assert.Equal(t, accounts, acc.Accounts)
+//			}
+//		})
+//	}
+//}
+//
+//func CreateAccount(t *testing.T, svc *Service, ctx context.Context, req []*accountv2.CreateAccountRequest) []*accountv2.AccountInfo {
+//	t.Helper()
+//	accounts := make([]*accountv2.AccountInfo, 0)
+//	for _, r := range req {
+//		acc, err := svc.CreateAccount(ctx, r)
+//		if err != nil {
+//			t.Fatalf("unexpected error: %v", err)
+//		}
+//		accounts = append(accounts, acc.Account)
+//	}
+//	return accounts
+//}

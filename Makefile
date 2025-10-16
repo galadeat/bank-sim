@@ -1,4 +1,4 @@
-.PHONY: run-server run-client quickstart test pb
+.PHONY: run-server run-client quickstart tests pb mock
 
 run-server:
 	go run ./server
@@ -16,8 +16,6 @@ quickstart:
 	go run ./client; \
 	kill $$SERVER_PID
 
-test:
-	go test ./tests/... -v
 
 PROTOC = protoc
 PROTO_DIR = api/proto
@@ -32,3 +30,12 @@ pb:
     	$(PROTO_FILES)
 
 
+mock:
+	mockgen \
+      -destination=mocks/mock_user_client.go \
+      -package=mocks \
+      -source=api/proto/user/v1/user_grpc.pb.go
+
+
+tests:
+	go test -coverprofile=coverage.out ./client/... ./server/... && go tool cover -func coverage.out
