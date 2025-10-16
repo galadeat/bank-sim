@@ -36,17 +36,14 @@ make quickstart
     │       ├── reporting/       # reporting service
     │       ├── transaction/     # transaction service
     │       └── user/            # user service
-    ├── client/
-    │   └── main.go
+    ├── cmd/
+    │   ├── client
+    │   └── server
     ├── server/
-    │   ├── account/
-    │   │   └── account_service.go
-    │   └── main.go
+    │   ├── account
+    │   └── user
     ├── tests/
-    │   ├── integration/
-    │   │   └── client_test.go
-    │   └── unit/
-    │       └── account_test.go
+    │   └── integration
     ├── README.md
     ├── go.mod
     ├── go.sum
