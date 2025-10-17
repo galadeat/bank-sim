@@ -6,11 +6,11 @@ import (
 	"os"
 	"time"
 
-	accountv1 "github.com/galadeat/bank-sim/api/proto/account/v1"
-
+	accountv2 "github.com/galadeat/bank-sim/api/proto/account/v2"
+	commonv1 "github.com/galadeat/bank-sim/api/proto/common/v1"
+	userv1 "github.com/galadeat/bank-sim/api/proto/user/v1"
+	"github.com/galadeat/bank-sim/pkg/clients"
 	"github.com/joho/godotenv"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 func main() {
@@ -19,39 +19,83 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
-	// establish gRPC connection using address from .env
-	conn, err := grpc.NewClient(os.Getenv("GRPC_ADDRESS"),
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-	)
-	if err != nil {
-		log.Fatalf("did not connect^ %v", err)
-	}
-	defer conn.Close()
-
-	// initialize client
-	client := accountv1.NewAccountClient(conn)
-
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	// add account
+	clients, err := clients.New()
+
+	if err != nil {
+		log.Fatal("falied to init clients: %v", err)
+	}
+	defer clients.Close()
+
+	// create user
 	login := os.Getenv("LOGIN")
 	email := os.Getenv("EMAIL")
 	if login == "" || email == "" {
 		log.Fatal("LOGIN and EMAIL must be set in .env")
 	}
 
-	response, err := client.AddAccount(ctx, &accountv1.AccountInfo{Login: login, Email: email})
+	user, err := clients.User.CreateUser(ctx, &userv1.CreateUserRequest{
+		Login: login,
+		Email: email,
+	})
 	if err != nil {
-		log.Fatalf("Could not add account: %v", err)
+		log.Fatalf("Could not create user: %v", err)
 	}
-	log.Printf("Account ID: %s added successfully", response.Value)
 
-	// retrieve account using returned ID
-	account, err := client.GetAccount(ctx, &accountv1.AccountID{Value: response.Value})
+	// retrieve user using returned ID
+	_, err = clients.User.GetUser(ctx, &userv1.GetUserRequest{Id: user.Id})
 	if err != nil {
 		log.Fatalf("Could not get account: %v", err)
 	}
-	log.Print("Account: ", account.String())
+
+	// Create accounts
+
+	accRUB, err := clients.Account.CreateAccount(ctx, &accountv2.CreateAccountRequest{
+		UserId: user.Id,
+		InitialBalance: &commonv1.Money{
+			Currency: "RUB",
+			Units:    1_000_000,
+			Nanos:    0,
+		},
+		RequestId: "1",
+	})
+	if err != nil {
+		log.Fatalf("Could not create account: %v", err)
+	}
+
+	accUSD, err := clients.Account.CreateAccount(ctx, &accountv2.CreateAccountRequest{
+		UserId: user.Id,
+		InitialBalance: &commonv1.Money{
+			Currency: "USD",
+			Units:    1_000_000,
+			Nanos:    0,
+		},
+		RequestId: "2",
+	})
+	if err != nil {
+		log.Fatalf("Could not create account: %v", err)
+	}
+
+	// withdraw money
+	_, err = clients.Account.Withdraw(ctx, &accountv2.WithdrawRequest{
+		AccountId: accUSD.Account.GetId(),
+		Amount:    &commonv1.Money{Currency: "USD", Units: 1_000, Nanos: 100},
+		RequestId: "3",
+	})
+	if err != nil {
+		log.Fatalf("Could not withdraw: %v", err)
+	}
+
+	// deposit money
+	_, err = clients.Account.Deposit(ctx, &accountv2.DepositRequest{
+		AccountId: accRUB.Account.GetId(),
+		Amount:    &commonv1.Money{Currency: "RUB", Units: 1_000, Nanos: 100},
+		RequestId: "4",
+	})
+	if err != nil {
+		log.Fatalf("Could not deposit: %v", err)
+	}
 
 }
