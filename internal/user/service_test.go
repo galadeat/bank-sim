@@ -47,7 +47,7 @@ func TestCreateUser(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := context.Background()
-			server := NewUserService()
+			server := New()
 
 			_, err := server.CreateUser(ctx, tt.req)
 			if err != nil {
@@ -67,7 +67,7 @@ func TestCreateUser(t *testing.T) {
 
 func TestGetUser(t *testing.T) {
 	ctx := context.Background()
-	server := NewUserService()
+	server := New()
 
 	id, _ := server.CreateUser(ctx, &userv1.CreateUserRequest{
 		Login: "test",
@@ -108,12 +108,12 @@ func TestGetUser(t *testing.T) {
 				return
 			}
 
-			if user.Login != "test" {
-				t.Errorf("expected login \"test\", got %v", user.Login)
+			if user.GetUser().GetLogin() != "test" {
+				t.Errorf("expected login \"test\", got %v", user.GetUser().GetLogin())
 			}
 
-			if user.Email != "test@test.com" {
-				t.Errorf("expected email \"test@test.com\", got %v", user.Email)
+			if user.GetUser().GetEmail() != "test@test.com" {
+				t.Errorf("expected email \"test@test.com\", got %v", user.GetUser().GetEmail())
 			}
 		})
 	}
@@ -123,7 +123,7 @@ func TestGetUser(t *testing.T) {
 func TestListUsers(t *testing.T) {
 	t.Run("succes", func(t *testing.T) {
 		ctx := context.Background()
-		server := NewUserService()
+		server := New()
 
 		server.CreateUser(ctx, &userv1.CreateUserRequest{
 			Login: "user1",
@@ -148,7 +148,7 @@ func TestListUsers(t *testing.T) {
 
 	t.Run("empty list", func(t *testing.T) {
 		ctx := context.Background()
-		server := NewUserService()
+		server := New()
 
 		res, err := server.ListUsers(ctx, &userv1.ListUsersRequest{})
 
@@ -166,7 +166,7 @@ func TestListUsers(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		cancel()
 
-		server := NewUserService()
+		server := New()
 		_, err := server.ListUsers(ctx, &userv1.ListUsersRequest{})
 
 		if err == nil {
@@ -185,7 +185,7 @@ func TestListUsers(t *testing.T) {
 func TestUpdateUser(t *testing.T) {
 	t.Run("success update both fields", func(t *testing.T) {
 		ctx := context.Background()
-		server := NewUserService()
+		server := New()
 
 		created, _ := server.CreateUser(ctx, &userv1.CreateUserRequest{
 			Login: "old_login",
@@ -213,7 +213,7 @@ func TestUpdateUser(t *testing.T) {
 
 	t.Run("update only email", func(t *testing.T) {
 		ctx := context.Background()
-		server := NewUserService()
+		server := New()
 
 		created, _ := server.CreateUser(ctx, &userv1.CreateUserRequest{
 			Login: "login",
@@ -240,7 +240,7 @@ func TestUpdateUser(t *testing.T) {
 
 	t.Run("user not found", func(t *testing.T) {
 		ctx := context.Background()
-		server := NewUserService()
+		server := New()
 
 		req := &userv1.UpdateUserRequest{
 			Id:    "nonexistent",
@@ -262,7 +262,7 @@ func TestUpdateUser(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		cancel()
 
-		server := NewUserService()
+		server := New()
 		created, _ := server.CreateUser(context.Background(), &userv1.CreateUserRequest{
 			Login: "login",
 			Email: "email@test.com",
@@ -286,7 +286,7 @@ func TestUpdateUser(t *testing.T) {
 
 	t.Run("empty values should not overwrite", func(t *testing.T) {
 		ctx := context.Background()
-		server := NewUserService()
+		server := New()
 
 		created, _ := server.CreateUser(ctx, &userv1.CreateUserRequest{
 			Login: "login",
@@ -316,7 +316,7 @@ func TestUpdateUser(t *testing.T) {
 func TestDeleteUser(t *testing.T) {
 	t.Run("success delete", func(t *testing.T) {
 		ctx := context.Background()
-		server := NewUserService()
+		server := New()
 
 		created, _ := server.CreateUser(ctx, &userv1.CreateUserRequest{
 			Login: "login",
@@ -340,7 +340,7 @@ func TestDeleteUser(t *testing.T) {
 
 	t.Run("user not found", func(t *testing.T) {
 		ctx := context.Background()
-		server := NewUserService()
+		server := New()
 
 		res, err := server.DeleteUser(ctx, &userv1.DeleteUserRequest{Id: "nonexistent"})
 		if err == nil {
@@ -362,7 +362,7 @@ func TestDeleteUser(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		cancel()
 
-		server := NewUserService()
+		server := New()
 		created, _ := server.CreateUser(context.Background(), &userv1.CreateUserRequest{
 			Login: "login",
 			Email: "email@test.com",

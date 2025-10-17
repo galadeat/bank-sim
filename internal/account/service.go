@@ -203,7 +203,7 @@ func (s *Service) Deposit(ctx context.Context, req *accountv2.DepositRequest) (*
 		return nil, err
 	}
 
-	acc.Balance = balance
+	s.accounts[req.AccountId].Balance = balance
 
 	log.Printf("deposit: account_id=%s, request_id=%s, amount=%v, new_balance=%v", req.AccountId, req.RequestId, req.Amount, acc.Balance)
 
@@ -241,7 +241,7 @@ func (s *Service) Withdraw(ctx context.Context, req *accountv2.WithdrawRequest) 
 		return nil, err
 	}
 
-	acc.Balance = balance
+	s.accounts[req.AccountId].Balance = balance
 
 	log.Printf("withdraw: account_id=%s, request_id=%s, new_balance=%v", req.AccountId, req.RequestId, acc.Balance)
 	resp := &accountv2.WithdrawResponse{Account: acc}

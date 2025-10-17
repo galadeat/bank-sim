@@ -18,7 +18,7 @@ type UserService struct {
 }
 
 // Constructor
-func NewUserService() *UserService {
+func New() *UserService {
 	return &UserService{userMap: make(map[string]*userv1.UserInfo)}
 }
 
@@ -43,18 +43,20 @@ func (s *UserService) CreateUser(ctx context.Context, req *userv1.CreateUserRequ
 	s.userMap[id.String()] = &userv1.UserInfo{Id: id.String(),
 		Login: req.Login, Email: req.Email}
 
+	log.Printf("User created: %v", s.userMap[id.String()])
 	return &userv1.CreateUserResponse{Id: id.String()}, nil
 }
 
 // realization of GetUser rpc method
-func (s *UserService) GetUser(ctx context.Context, req *userv1.GetUserRequest) (*userv1.UserInfo, error) {
+func (s *UserService) GetUser(ctx context.Context, req *userv1.GetUserRequest) (*userv1.GetUserResponse, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	value, exists := s.userMap[req.Id]
-	if exists {
-		return value, nil
+	user, exists := s.userMap[req.Id]
+	if !exists {
+		return nil, status.Errorf(codes.NotFound, "user does not exist %v", req.Id)
 	}
-	return nil, status.Errorf(codes.NotFound, "user does not exist %v", req.Id)
+	log.Printf("User: %v", user)
+	return &userv1.GetUserResponse{User: user}, nil
 
 }
 

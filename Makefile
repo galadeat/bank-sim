@@ -1,4 +1,4 @@
-.PHONY: run-server run-client quickstart tests pb mock
+.PHONY: build run-server run-client quickstart tests pb mock
 
 run-server:
 	go run ./server
@@ -7,14 +7,18 @@ run-server:
 run-client:
 	go run ./client
 
-quickstart:
-	@go run ./server & \
+build:
+	@go build -o bin/server ./cmd/server
+
+quickstart: build
+	@./bin/server & \
 	SERVER_PID=$$!; \
-	echo "Waiting for gRPC server on port 50051"; \
-	until nc -z localhost 50051; do sleep 1; done; \
-	echo "server is up"; \
-	go run ./client; \
-	kill $$SERVER_PID
+	echo "Waiting for gRPC servers..."; \
+	until nc -z localhost 50051 && nc -z localhost 50052; do sleep 1; done; \
+	echo "servers are up"; \
+	go run ./cmd/client; \
+	sleep 1; \
+	kill $$SERVER_PID; \
 
 
 PROTOC = protoc
