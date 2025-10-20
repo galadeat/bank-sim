@@ -1,14 +1,19 @@
-.PHONY: build run-server run-client quickstart tests pb mock
-
-run-server:
-	go run ./server
-
-
-run-client:
-	go run ./client
+.PHONY: run-server run-client quickstart tests pb mock
 
 build:
 	@go build -o bin/server ./cmd/server
+
+run-server: build
+	@./bin/server & \
+	echo "Waiting for gRPC servers..."; \
+	until nc -z localhost 50051 && nc -z localhost 50052; do sleep 1; done; \
+	echo "servers are up"; \
+
+
+run-client:
+	go run ./cmd/client
+
+
 
 quickstart: build
 	@./bin/server & \
@@ -42,4 +47,4 @@ mock:
 
 
 tests:
-	go test -coverprofile=coverage.out ./client/... ./server/... && go tool cover -func coverage.out
+	go test -coverprofile=coverage.out ./cmd/... ./internal/... ./pkg/... && go tool cover -func coverage.out
