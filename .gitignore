@@ -19,5 +19,5 @@ Thumbs.db
 # Environment config
 .env
 
-# Protobuf artifacts 
-*.pb.go
+# binaries
+bin/
