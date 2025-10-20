@@ -11,6 +11,7 @@ import (
 	userv1 "github.com/galadeat/bank-sim/api/proto/user/v1"
 	"github.com/galadeat/bank-sim/internal/account"
 	"github.com/galadeat/bank-sim/internal/user"
+	"github.com/galadeat/bank-sim/pkg/logger"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -21,6 +22,8 @@ const (
 )
 
 func main() {
+	file := logger.Init("appServer.log")
+	defer file.Close()
 	lisUser, err := net.Listen("tcp", userPort)
 	if err != nil {
 		panic(err)

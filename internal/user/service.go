@@ -40,10 +40,14 @@ func (s *UserService) CreateUser(ctx context.Context, req *userv1.CreateUserRequ
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
+	if _, ok := s.userMap[id.String()]; ok {
+		return nil, status.Errorf(codes.AlreadyExists, "user already exists")
+	}
+
 	s.userMap[id.String()] = &userv1.UserInfo{Id: id.String(),
 		Login: req.Login, Email: req.Email}
 
-	log.Printf("User created: %v", s.userMap[id.String()])
+	log.Printf("User %v created", id.String())
 	return &userv1.CreateUserResponse{Id: id.String()}, nil
 }
 
@@ -55,7 +59,6 @@ func (s *UserService) GetUser(ctx context.Context, req *userv1.GetUserRequest) (
 	if !exists {
 		return nil, status.Errorf(codes.NotFound, "user does not exist %v", req.Id)
 	}
-	log.Printf("User: %v", user)
 	return &userv1.GetUserResponse{User: user}, nil
 
 }
@@ -96,6 +99,9 @@ func (s *UserService) UpdateUser(ctx context.Context, req *userv1.UpdateUserRequ
 		return nil, status.Errorf(codes.NotFound, "user doesn't exist!")
 	}
 
+	if req.Login.Value == "" && req.Email.Value == "" {
+		return &userv1.UpdateUserResponse{User: user}, nil
+	}
 	if req.Email != nil && req.Email.Value != "" {
 		user.Email = req.Email.Value
 	}
@@ -124,7 +130,7 @@ func (s *UserService) DeleteUser(ctx context.Context, req *userv1.DeleteUserRequ
 
 	delete(s.userMap, req.Id)
 
-	log.Printf("user deleted: id=%s", req.Id)
+	log.Printf("User %v deleted", req.Id)
 
 	return &userv1.DeleteUserResponse{Success: true}, nil
 
