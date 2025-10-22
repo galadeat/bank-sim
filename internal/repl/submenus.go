@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"strconv"
-	"time"
 
 	accountv2 "github.com/galadeat/bank-sim/api/proto/account/v2"
 	commonv1 "github.com/galadeat/bank-sim/api/proto/common/v1"
@@ -63,7 +62,7 @@ func runBalanceMenu(reader *bufio.Reader) *commonv1.Money {
 
 func runChooseUserMenu(reader *bufio.Reader, client userv1.UserClient) string {
 	fmt.Println("\n\tUsers:")
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	resp, err := client.ListUsers(ctx, &userv1.ListUsersRequest{})
 	if err != nil {
@@ -97,11 +96,15 @@ func runChooseAccountMenu(reader *bufio.Reader, client accountv2.AccountClient, 
 		return ""
 	}
 	fmt.Println("\n\tAccounts:")
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	resp, err := client.ListAccounts(ctx, &accountv2.ListAccountsRequest{UserId: id})
 	if err != nil {
 		fmt.Println("Error listing accounts: ", err)
+		return ""
+	}
+	if len(resp.Accounts) == 0 {
+		fmt.Println("No accounts found")
 		return ""
 	}
 

@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"context"
 	"fmt"
-	"time"
 
 	userv1 "github.com/galadeat/bank-sim/api/proto/user/v1"
 	"google.golang.org/protobuf/types/known/wrapperspb"
@@ -52,7 +51,7 @@ func handleCreateUser(reader *bufio.Reader, userClient userv1.UserClient) {
 		Email: email,
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	resp, err := userClient.CreateUser(ctx, req)
@@ -82,7 +81,7 @@ func handleGetUser(reader *bufio.Reader, userClient userv1.UserClient) {
 }
 
 func handleListUsers(userClient userv1.UserClient) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	fmt.Println("\n\t\t\t\tUsers:")
 	resp, err := userClient.ListUsers(ctx, &userv1.ListUsersRequest{})
@@ -113,8 +112,10 @@ func handleUpdateUser(reader *bufio.Reader, userClient userv1.UserClient) {
 		Email: wrapperspb.String(email),
 		Id:    id,
 	}
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
-	resp, err := userClient.UpdateUser(context.Background(), req)
+	resp, err := userClient.UpdateUser(ctx, req)
 	if err != nil {
 		fmt.Println("Error updating user: ", err)
 		return
@@ -129,7 +130,11 @@ func handleDeleteUser(reader *bufio.Reader, userClient userv1.UserClient) {
 	}
 
 	req := &userv1.DeleteUserRequest{Id: id}
-	_, err := userClient.DeleteUser(context.Background(), req)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	_, err := userClient.DeleteUser(ctx, req)
 	if err != nil {
 		fmt.Println("Error deleting user: ", err)
 		return

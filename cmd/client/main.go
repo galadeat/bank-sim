@@ -6,15 +6,12 @@ import (
 	"github.com/galadeat/bank-sim/internal/repl"
 	"github.com/galadeat/bank-sim/pkg/clients"
 	"github.com/galadeat/bank-sim/pkg/logger"
-	"github.com/joho/godotenv"
 )
 
 func main() {
 	file := logger.Init("appClient.log")
 	defer file.Close()
-	if err := godotenv.Load(); err != nil {
-		log.Fatal("Error loading .env file")
-	}
+	
 	log.Print("Logs started")
 	clients, err := clients.New()
 

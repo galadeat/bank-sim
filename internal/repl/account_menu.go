@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"time"
 
 	accountv2 "github.com/galadeat/bank-sim/api/proto/account/v2"
 	userv1 "github.com/galadeat/bank-sim/api/proto/user/v1"
@@ -65,7 +64,7 @@ func handleCreateAccount(reader *bufio.Reader, accountClient accountv2.AccountCl
 		InitialBalance: balance,
 		RequestId:      request.String(),
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	resp, err := accountClient.CreateAccount(ctx, req)
@@ -83,7 +82,7 @@ func handleGetAccount(reader *bufio.Reader, accountClient accountv2.AccountClien
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	resp, err := accountClient.GetAccount(ctx, &accountv2.GetAccountRequest{Id: id})
 	if err != nil {
@@ -104,8 +103,8 @@ func handleListAccounts(reader *bufio.Reader, accountClient accountv2.AccountCli
 	req := &accountv2.ListAccountsRequest{
 		UserId: id,
 	}
-	fmt.Printf("\n\tAccounts:")
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	fmt.Printf("\n\tAccounts:\n")
+	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	resp, err := accountClient.ListAccounts(ctx, req)
 	if err != nil {
@@ -126,7 +125,7 @@ func handleDeleteAccount(reader *bufio.Reader, accountClient accountv2.AccountCl
 	req := &accountv2.DeleteAccountRequest{
 		AccountId: id,
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	_, err := accountClient.DeleteAccount(ctx, req)
 	if err != nil {
@@ -151,7 +150,7 @@ func handleDepositMoney(reader *bufio.Reader, accountClient accountv2.AccountCli
 		Amount:    depositMoney,
 		RequestId: reqId.String(),
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	resp, err := accountClient.Deposit(ctx, req)
 	if err != nil {
@@ -180,7 +179,7 @@ func handleWithdrawMoney(reader *bufio.Reader, accountClient accountv2.AccountCl
 		Amount:    withdrawMoney,
 		RequestId: reqId.String(),
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	resp, err := accountClient.Withdraw(ctx, req)
 	if err != nil {
